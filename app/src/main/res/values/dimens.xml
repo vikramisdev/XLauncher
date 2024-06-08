@@ -1,0 +1,5 @@
+<resources>
+
+    <dimen name="item_horizontal_margin">16dp</dimen> <!-- Adjust the value as per your design -->
+
+</resources>
