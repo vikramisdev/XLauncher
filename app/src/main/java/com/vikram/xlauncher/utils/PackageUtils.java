@@ -7,6 +7,7 @@ import android.content.pm.PackageInfo;
 import android.content.pm.PackageManager;
 import android.content.pm.ResolveInfo;
 import android.graphics.drawable.Drawable;
+import android.health.connect.datatypes.AppInfo;
 import com.vikram.xlauncher.models.AppModel;
 import java.util.ArrayList;
 import java.util.Collections;
@@ -46,8 +47,9 @@ public class PackageUtils {
         Drawable appIcon = appInfo.loadIcon(packageManager);
         double version = packageInfo.versionCode;
         String packageName = appInfo.packageName;
+		boolean canUninstall = canUninstall(appInfo);
 
-        AppModel appModel = new AppModel(appName, appIcon, version, packageName);
+        AppModel appModel = new AppModel(appName, appIcon, version, packageName, canUninstall);
         appList.add(appModel);
       }
     }
@@ -73,6 +75,10 @@ public class PackageUtils {
       }
     }
     return false;
+  }
+  
+  public boolean canUninstall(ApplicationInfo appInfo) {
+	  return (appInfo.flags & ApplicationInfo.FLAG_SYSTEM) == 0;
   }
 
   // Method to sort appList in reverse order

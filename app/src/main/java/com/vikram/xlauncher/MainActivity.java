@@ -61,7 +61,7 @@ public class MainActivity extends AppCompatActivity {
     SearchBar appDrawerSearchBar = findViewById(R.id.app_drawer_searchbar);
     RecyclerView recyclerView = findViewById(R.id.app_drawer_all_apps);
     rvHomepage = findViewById(R.id.homepage_container);
-    homepageAdapter = new HomepageAdapter(this, homepageList);
+    homepageAdapter = new HomepageAdapter(this, this, homepageList);
 
     rvHomepage.setLayoutManager(
         new LinearLayoutManager(this, LinearLayoutManager.HORIZONTAL, false));

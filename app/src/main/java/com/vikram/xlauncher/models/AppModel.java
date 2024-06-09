@@ -7,13 +7,15 @@ public class AppModel {
     private Drawable appImage;
     private double version;
     private String packageName;
+	private boolean canUninstalled;
 
     // Constructor
-    public AppModel(String appName, Drawable appImage, double version, String packageName) {
+    public AppModel(String appName, Drawable appImage, double version, String packageName, boolean canUninstalled) {
         this.appName = appName;
         this.appImage = appImage;
         this.version = version;
         this.packageName = packageName;
+		this.canUninstalled = canUninstalled;
     }
 
     // Getters and setters
@@ -59,4 +61,8 @@ public class AppModel {
                 ", packageName='" + packageName + '\'' +
                 '}';
     }
+	
+	public boolean canUninstall() {
+		return canUninstalled;
+	}
 }

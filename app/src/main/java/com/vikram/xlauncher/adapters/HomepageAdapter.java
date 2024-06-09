@@ -2,11 +2,11 @@ package com.vikram.xlauncher.adapters;
 
 import android.content.Context;
 import android.graphics.Color;
-import android.graphics.drawable.Drawable;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
-import android.widget.TextView;
+import android.widget.LinearLayout;
+import androidx.appcompat.app.AppCompatActivity;
 import androidx.recyclerview.widget.RecyclerView;
 import com.vikram.xlauncher.R;
 import com.vikram.xlauncher.adapters.HomepageAdapter.ViewHolder;
@@ -22,11 +22,14 @@ public class HomepageAdapter extends RecyclerView.Adapter<HomepageAdapter.ViewHo
   private boolean isOriginalSizeSet = false;
   private View.OnLongClickListener onLongClick;
   private View.OnClickListener onClick;
-  private ViewGroup.LayoutParams originalLayoutParams; // Store original layout params
+  private ViewGroup.LayoutParams originalLayoutParams;
+  private LinearLayout homepageWallpaperAndSettings;
+  private AppCompatActivity activity;
 
-  public HomepageAdapter(Context context, List<String> dataList) {
+  public HomepageAdapter(Context context, AppCompatActivity activity, List<String> dataList) {
     this.context = context;
     this.dataList = dataList;
+    this.activity = activity;
   }
 
   @Override
@@ -38,8 +41,6 @@ public class HomepageAdapter extends RecyclerView.Adapter<HomepageAdapter.ViewHo
 
   @Override
   public void onBindViewHolder(ViewHolder holder, int position) {
-    String data = dataList.get(position);
-    holder.textView.setText(data);
 
     // Set onClickListener to handle touch events
     View.OnClickListener onClick =
@@ -65,16 +66,22 @@ public class HomepageAdapter extends RecyclerView.Adapter<HomepageAdapter.ViewHo
           }
         };
     holder.itemView.setOnLongClickListener(onLongClick);
-	
+
     // Adjust dimensions based on touch or long press state
     ViewGroup.LayoutParams layoutParams = holder.itemView.getLayoutParams();
     if (isLongPressed) {
       layoutParams.width = convertDpToPixels(260); // Set width to 260dp
       layoutParams.height = convertDpToPixels(500); // Set height to 500dp
-	  
-	  holder.itemView.setBackgroundResource(R.drawable.round_rect);
-	  // this will fix for the drag and drop
-	  holder.itemView.setOnLongClickListener(null);
+
+      holder.itemView.setBackgroundResource(R.drawable.round_rect);
+      // this will fix for the drag and drop
+      holder.itemView.setOnLongClickListener(null);
+
+      homepageWallpaperAndSettings = activity.findViewById(R.id.homepage_wallaper_and_settings);
+
+      if (homepageWallpaperAndSettings != null) {
+        homepageWallpaperAndSettings.setVisibility(View.VISIBLE);
+      }
 
     } else if (isTouched) {
       if (!isOriginalSizeSet) {
@@ -85,7 +92,13 @@ public class HomepageAdapter extends RecyclerView.Adapter<HomepageAdapter.ViewHo
       layoutParams.width = ViewGroup.LayoutParams.MATCH_PARENT;
       layoutParams.height = ViewGroup.LayoutParams.MATCH_PARENT;
 	  
-	  holder.itemView.setBackgroundColor(Color.TRANSPARENT);
+	  holder.itemView.setBackgroundColor(Color.WHITE);
+
+      homepageWallpaperAndSettings = activity.findViewById(R.id.homepage_wallaper_and_settings);
+
+      if (homepageWallpaperAndSettings != null) {
+        homepageWallpaperAndSettings.setVisibility(View.INVISIBLE);
+      }
     } else {
       // Reset to original dimensions if not touched or long pressed
       if (isOriginalSizeSet) {
@@ -93,7 +106,7 @@ public class HomepageAdapter extends RecyclerView.Adapter<HomepageAdapter.ViewHo
         layoutParams.height = originalLayoutParams.height;
       }
     }
-	
+
     holder.itemView.setLayoutParams(layoutParams);
   }
 
@@ -103,11 +116,9 @@ public class HomepageAdapter extends RecyclerView.Adapter<HomepageAdapter.ViewHo
   }
 
   public class ViewHolder extends RecyclerView.ViewHolder {
-    public TextView textView;
 
     public ViewHolder(View itemView) {
       super(itemView);
-      textView = itemView.findViewById(R.id.item_text);
     }
   }
 

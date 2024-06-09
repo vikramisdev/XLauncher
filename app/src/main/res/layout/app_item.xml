@@ -4,7 +4,7 @@
     android:layout_height="wrap_content"
     android:gravity="center_horizontal"
     android:orientation="vertical"
-    android:padding="8dp" >
+    android:padding="5dp" >
 
     <com.google.android.material.imageview.ShapeableImageView
         android:id="@+id/app_icon"

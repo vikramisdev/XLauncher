@@ -4,6 +4,7 @@ import android.animation.AnimatorInflater;
 import android.animation.AnimatorSet;
 import android.content.Context;
 import android.content.Intent;
+import android.net.Uri;
 import android.view.ContextThemeWrapper;
 import android.view.LayoutInflater;
 import android.view.MenuItem;
@@ -93,12 +94,15 @@ public class RecyclerViewAdapter extends RecyclerView.Adapter<RecyclerViewAdapte
   }
 
   private void showPopupMenu(Context context, View anchorView, AppModel app) {
-	Context wrapper = new ContextThemeWrapper(context, R.style.PopupMenuStyle);
+    Context wrapper = new ContextThemeWrapper(context, R.style.PopupMenuStyle);
     PopupMenu popupMenu = new PopupMenu(wrapper, anchorView);
     popupMenu.getMenuInflater().inflate(R.menu.popup_menu, popupMenu.getMenu());
 
     // Optionally, you can dynamically set menu item titles or icons based on app details
     // popupMenu.getMenu().findItem(R.id.menu_item_id).setTitle(app.getAppName());
+	if(!app.canUninstall()) {
+		popupMenu.getMenu().findItem(R.id.menu_app_uninstall).setTitle("Disable");
+	}
 
     popupMenu.setOnMenuItemClickListener(
         new PopupMenu.OnMenuItemClickListener() {
@@ -106,10 +110,10 @@ public class RecyclerViewAdapter extends RecyclerView.Adapter<RecyclerViewAdapte
           public boolean onMenuItemClick(MenuItem item) {
             // Handle menu item click here
             switch (item.getItemId()) {
-              case R.id.menu_item_action1:
-                // Perform action 1
+              case R.id.menu_app_info:
+                launchAppInfo(app.getPackageName());
                 break;
-              case R.id.menu_item_action2:
+              case R.id.menu_app_uninstall:
                 // Perform action 2
                 break;
                 // Add more cases as needed
@@ -129,6 +133,19 @@ public class RecyclerViewAdapter extends RecyclerView.Adapter<RecyclerViewAdapte
       super(view);
       appIcon = view.findViewById(R.id.app_icon);
       appName = view.findViewById(R.id.app_name);
+    }
+  }
+
+  public void launchAppInfo(String packageName) {
+    Intent intent = new Intent(android.provider.Settings.ACTION_APPLICATION_DETAILS_SETTINGS);
+    intent.setData(Uri.parse("package:" + packageName));
+
+    // Check if there's an activity that can handle this intent
+    if (intent.resolveActivity(context.getPackageManager()) != null) {
+      context.startActivity(intent);
+    } else {
+      // Handle if no activity can handle the intent
+      Toast.makeText(context, "Unable to open app info for " + packageName, Toast.LENGTH_SHORT).show();
     }
   }
 }
