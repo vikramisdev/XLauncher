@@ -45,4 +45,8 @@
         <item name="android:dropDownWidth">wrap_content</item>
     </style>
 
+    <style name="SearchViewStyle" parent="Widget.AppCompat.SearchView">
+        <item name="queryBackground">@null</item>
+    </style>
+
 </resources>

@@ -1,12 +1,21 @@
 package com.vikram.xlauncher.utils;
 
 import android.content.Context;
+import android.content.res.Resources;
+import android.graphics.Bitmap;
+import android.graphics.BitmapFactory;
+import android.graphics.Canvas;
+import android.graphics.drawable.BitmapDrawable;
+import android.graphics.drawable.Drawable;
 import android.graphics.drawable.ShapeDrawable;
 import android.graphics.drawable.shapes.RoundRectShape;
+import android.net.Uri;
 import android.util.DisplayMetrics;
 import android.view.View;
-import android.view.Window;
 import android.view.WindowManager;
+import java.io.FileNotFoundException;
+import java.io.IOException;
+import java.io.InputStream;
 
 public class Utils {
   private Context context;
@@ -59,10 +68,9 @@ public class Utils {
 
     // Create a ShapeDrawable with the RoundRectShape
     ShapeDrawable shapeDrawable = new ShapeDrawable(roundRectShape);
-	if(backgroundColor != 0) {
-		shapeDrawable.getPaint().setColor(backgroundColor); // Set the background color
-	}
-    
+    if (backgroundColor != 0) {
+      shapeDrawable.getPaint().setColor(backgroundColor); // Set the background color
+    }
 
     // Set the background of the view to the ShapeDrawable
     view.setBackground(shapeDrawable);
@@ -71,5 +79,53 @@ public class Utils {
   public void setViewShape(Context context, View view, int backgroundColor, float cornerRadiusPx) {
     float[] mCornerRadiusPx = {cornerRadiusPx, cornerRadiusPx, cornerRadiusPx, cornerRadiusPx};
     setViewShape(context, view, backgroundColor, mCornerRadiusPx);
+  }
+
+  public Bitmap drawableToBitmap(Drawable drawable) {
+    if (drawable instanceof BitmapDrawable) {
+      return ((BitmapDrawable) drawable).getBitmap();
+    }
+
+    int width = drawable.getIntrinsicWidth();
+    int height = drawable.getIntrinsicHeight();
+    Bitmap bitmap = Bitmap.createBitmap(width, height, Bitmap.Config.ARGB_8888);
+    Canvas canvas = new Canvas(bitmap);
+    drawable.setBounds(0, 0, canvas.getWidth(), canvas.getHeight());
+    drawable.draw(canvas);
+
+    return bitmap;
+  }
+
+  public Drawable uriToDrawable(Context context, Uri uri) {
+    try {
+      InputStream inputStream = context.getContentResolver().openInputStream(uri);
+      return Drawable.createFromStream(inputStream, uri.toString());
+    } catch (Exception e) {
+      e.printStackTrace();
+      return null;
+    }
+  }
+
+  public Drawable bitmapToDrawable(Resources resources, Bitmap bitmap) {
+    return new BitmapDrawable(resources, bitmap);
+  }
+
+  public static Bitmap uriToBitmap(Context context, Uri uri) {
+    Bitmap bitmap = null;
+    try {
+      InputStream inputStream = context.getContentResolver().openInputStream(uri);
+      bitmap = BitmapFactory.decodeStream(inputStream);
+      inputStream.close();
+    } catch (FileNotFoundException e) {
+      e.printStackTrace();
+    } catch (IOException e) {
+      e.printStackTrace();
+    }
+    return bitmap;
+  }
+
+  public int dpToPx(float dp) {
+    float density = context.getResources().getDisplayMetrics().density;
+    return (int) (dp * density + 0.5f); // 0.5f is added for rounding to the nearest whole number
   }
 }

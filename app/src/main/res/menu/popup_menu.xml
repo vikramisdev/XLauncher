@@ -1,6 +1,6 @@
-<menu xmlns:android="http://schemas.android.com/apk/res/android" xmlns:app="http://schemas.android.com/apk/res-auto">
+<menu xmlns:android="http://schemas.android.com/apk/res/android">
 
-    <item android:id="@+id/menu_app_info" android:title="App Info"/>
-    <item android:id="@+id/menu_app_uninstall" android:title="Uninstall"/>
+    <item android:id="@+id/menu_app_info" android:layout_width="wrap_content" android:showAsAction="always" android:singleLine="false" android:title="App Info"/>
+    <item android:id="@+id/menu_app_uninstall" android:layout_width="wrap_content" android:enabled="true" android:singleLine="false" android:title="Uninstall"/>
 
 </menu>

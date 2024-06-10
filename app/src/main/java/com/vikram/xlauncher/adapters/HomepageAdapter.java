@@ -92,7 +92,7 @@ public class HomepageAdapter extends RecyclerView.Adapter<HomepageAdapter.ViewHo
       layoutParams.width = ViewGroup.LayoutParams.MATCH_PARENT;
       layoutParams.height = ViewGroup.LayoutParams.MATCH_PARENT;
 	  
-	  holder.itemView.setBackgroundColor(Color.WHITE);
+	  holder.itemView.setBackgroundColor(Color.TRANSPARENT);
 
       homepageWallpaperAndSettings = activity.findViewById(R.id.homepage_wallaper_and_settings);
 

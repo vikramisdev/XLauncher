@@ -95,6 +95,7 @@ public class RecyclerViewAdapter extends RecyclerView.Adapter<RecyclerViewAdapte
 
   private void showPopupMenu(Context context, View anchorView, AppModel app) {
     Context wrapper = new ContextThemeWrapper(context, R.style.PopupMenuStyle);
+	
     PopupMenu popupMenu = new PopupMenu(wrapper, anchorView);
     popupMenu.getMenuInflater().inflate(R.menu.popup_menu, popupMenu.getMenu());
 

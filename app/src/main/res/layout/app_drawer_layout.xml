@@ -1,4 +1,4 @@
-<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+<com.vikram.xlauncher.layouts.XRelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
     xmlns:tools="http://schemas.android.com/tools"
     android:id="@+id/bottom_sheet"
@@ -10,19 +10,39 @@
     android:gravity="top|center_horizontal"
     android:orientation="vertical" >
 
-    <com.google.android.material.search.SearchBar
-        android:id="@+id/app_drawer_searchbar"
-        android:layout_width="match_parent"
-        android:layout_height="50dp" />
-
     <androidx.recyclerview.widget.RecyclerView
-		android:id="@+id/app_drawer_all_apps"
+        android:id="@+id/app_drawer_all_apps"
         android:layout_width="match_parent"
         android:layout_height="match_parent"
-		android:layout_marginTop="20dp"
-		android:layout_marginLeft="5dp"
-		android:layout_marginRight="5dp"
+        android:layout_below="@id/app_drawer_searchbar"
+        android:layout_marginLeft="5dp"
+        android:layout_marginRight="5dp"
+        android:layout_marginTop="20dp"
         android:orientation="vertical"
         android:scrollbars="vertical" />
 
-</LinearLayout>
+    <com.vikram.xlauncher.views.XTextView
+        android:id="@+id/search_results"
+        android:layout_width="match_parent"
+        android:layout_height="100dp"
+        android:layout_margin="15dp"
+        android:background="@color/md_theme_dark_error"
+        android:clickable="false"
+        android:gravity="center"
+        android:text="Hi" />
+
+    <com.vikram.xlauncher.layouts.XSearchView
+        android:id="@+id/app_drawer_searchbar"
+        style="@style/SearchViewStyle"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginLeft="15dp"
+        android:layout_marginRight="15dp"
+        android:layout_marginTop="15dp"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toTopOf="parent"
+        android:background="@color/md_theme_dark_background"
+        android:clickable="true" />
+
+</com.vikram.xlauncher.layouts.XRelativeLayout>
