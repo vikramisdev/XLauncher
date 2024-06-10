@@ -1,7 +1,7 @@
 <com.vikram.xlauncher.layouts.XRelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
     xmlns:tools="http://schemas.android.com/tools"
-    android:id="@+id/bottom_sheet"
+    android:id="@+id/app_drawer_container"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
     app:layout_behavior="com.google.android.material.bottomsheet.BottomSheetBehavior"
@@ -10,8 +10,8 @@
     android:gravity="top|center_horizontal"
     android:orientation="vertical" >
 
-    <androidx.recyclerview.widget.RecyclerView
-        android:id="@+id/app_drawer_all_apps"
+    <com.vikram.xlauncher.views.XRecyclerView
+        android:id="@+id/app_drawer_apps"
         android:layout_width="match_parent"
         android:layout_height="match_parent"
         android:layout_below="@id/app_drawer_searchbar"
@@ -21,15 +21,15 @@
         android:orientation="vertical"
         android:scrollbars="vertical" />
 
-    <com.vikram.xlauncher.views.XTextView
-        android:id="@+id/search_results"
+    <com.vikram.xlauncher.views.XRecyclerView
+        android:id="@+id/app_drawer_searchbar_results"
         android:layout_width="match_parent"
-        android:layout_height="100dp"
+        android:layout_height="180dp"
         android:layout_margin="15dp"
         android:background="@color/md_theme_dark_error"
         android:clickable="false"
-        android:gravity="center"
-        android:text="Hi" />
+		android:visibility="gone"
+        android:gravity="center" />
 
     <com.vikram.xlauncher.layouts.XSearchView
         android:id="@+id/app_drawer_searchbar"

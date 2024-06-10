@@ -1,6 +1,7 @@
 package com.vikram.xlauncher.utils;
 
 import android.content.Context;
+import android.content.Intent;
 import android.content.res.Resources;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
@@ -12,16 +13,20 @@ import android.graphics.drawable.shapes.RoundRectShape;
 import android.net.Uri;
 import android.util.DisplayMetrics;
 import android.view.View;
+import android.view.Window;
 import android.view.WindowManager;
+import androidx.appcompat.app.AppCompatActivity;
 import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.io.InputStream;
 
 public class Utils {
   private Context context;
+  private AppCompatActivity activity;
 
   public Utils(Context c) {
     this.context = c;
+    this.activity = (AppCompatActivity) c;
   }
 
   @SuppressWarnings("deprecation")
@@ -43,7 +48,7 @@ public class Utils {
     return getDisplayMetrics().widthPixels;
   }
 
-  public static void setViewShape(
+  public void setViewShape(
       Context context, View view, int backgroundColor, float[] cornerRadiusDp) {
     // Convert corner radius from dp to pixels
     float cornerRadiusPxTopLeft =
@@ -110,7 +115,7 @@ public class Utils {
     return new BitmapDrawable(resources, bitmap);
   }
 
-  public static Bitmap uriToBitmap(Context context, Uri uri) {
+  public Bitmap uriToBitmap(Context context, Uri uri) {
     Bitmap bitmap = null;
     try {
       InputStream inputStream = context.getContentResolver().openInputStream(uri);
@@ -127,5 +132,21 @@ public class Utils {
   public int dpToPx(float dp) {
     float density = context.getResources().getDisplayMetrics().density;
     return (int) (dp * density + 0.5f); // 0.5f is added for rounding to the nearest whole number
+  }
+
+  public void setDeviceFullScreen() {
+    Window window = activity.getWindow();
+    window
+        .getDecorView()
+        .setSystemUiVisibility(
+            View.SYSTEM_UI_FLAG_LAYOUT_STABLE
+                | View.SYSTEM_UI_FLAG_LAYOUT_HIDE_NAVIGATION
+                | View.SYSTEM_UI_FLAG_LAYOUT_FULLSCREEN);
+  }
+
+  public void openMediaPicker() {
+    Intent intent = new Intent(Intent.ACTION_PICK);
+    intent.setType("image/*");
+    activity.startActivityForResult(intent, 53);
   }
 }
