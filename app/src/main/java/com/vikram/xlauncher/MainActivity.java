@@ -9,6 +9,7 @@ import android.os.Handler;
 import android.provider.Settings;
 import android.view.View;
 import android.view.ViewGroup;
+import android.widget.Button;
 import android.widget.ImageView;
 import android.widget.RelativeLayout;
 import android.widget.SearchView;
@@ -20,10 +21,10 @@ import androidx.recyclerview.widget.GridLayoutManager;
 import androidx.recyclerview.widget.ItemTouchHelper;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.PagerSnapHelper;
-import androidx.recyclerview.widget.RecyclerView;
 import com.google.android.material.bottomsheet.BottomSheetBehavior;
+import com.vikram.xlauncher.adapters.AppDrawerAppsAdapter;
+import com.vikram.xlauncher.adapters.AppDrawerSearchbarResultsAdapter;
 import com.vikram.xlauncher.adapters.HomepageAdapter;
-import com.vikram.xlauncher.adapters.RecyclerViewAdapter;
 import com.vikram.xlauncher.layouts.XRelativeLayout;
 import com.vikram.xlauncher.layouts.XSearchView;
 import com.vikram.xlauncher.models.AppModel;
@@ -42,7 +43,7 @@ import org.jetbrains.annotations.Nullable;
 public class MainActivity extends AppCompatActivity {
 
   private BottomSheetBehavior<RelativeLayout> bottomSheetBehavior;
-  private List<AppModel> appList;
+  private List<AppModel> appList, searchbarResultsApps;
   private PackageUtils packageUtils;
   private XRecyclerView rvHomepagePages, rvAppDrawerApps, rvAppDrawerSearchbarResults;
   private HomepageAdapter homepageAdapter;
@@ -55,6 +56,7 @@ public class MainActivity extends AppCompatActivity {
   private XSearchView svAppDrawerSearchBar;
   private XTextView searchResults;
   private XRelativeLayout rlAppDrawerContainer;
+  private List<String> list10;
 
   @Override
   protected void onCreate(@NotNull Bundle savedInstanceState) {
@@ -66,6 +68,9 @@ public class MainActivity extends AppCompatActivity {
     wallpaperUtils = new WallpaperUtils(this);
     packageUtils = new PackageUtils(this);
     preferenceManager = new PreferenceManager(this);
+
+    appList = packageUtils.getAppList();
+    searchbarResultsApps = new ArrayList<AppModel>();
 
     // make the screen to fullscreen so views go under status bar
     utils.setDeviceFullScreen();
@@ -80,12 +85,12 @@ public class MainActivity extends AppCompatActivity {
     clHomepageContainer = findViewById(R.id.homepage_container);
     rvAppDrawerSearchbarResults = findViewById(R.id.app_drawer_searchbar_results);
 
-	// call component methods in order
-	setupHomepagePages();
-	setupAppDrawer();
-	setupHomepageWallpaperButton();
+    // call component methods in order
+    setupHomepagePages();
+    setupAppDrawer();
+    setupHomepageWallpaperButton();
 
-	// set launcher to main_layout
+    // set launcher to main_layout
     wallpaperUtils.setLauncherWallpaper(clHomepageContainer);
 
     registerObserver(
@@ -95,9 +100,10 @@ public class MainActivity extends AppCompatActivity {
 
   @Override
   public void onBackPressed() {
+    showToast(String.valueOf(bottomSheetBehavior.getState()));
     if (bottomSheetBehavior.getState() == BottomSheetBehavior.STATE_EXPANDED) {
       bottomSheetBehavior.setState(BottomSheetBehavior.STATE_COLLAPSED);
-	  rvAppDrawerSearchbarResults.setVisibility(View.INVISIBLE);
+      rvAppDrawerSearchbarResults.setVisibility(View.INVISIBLE);
       svAppDrawerSearchBar.setIconified(true);
     } else {
       super.onBackPressed();
@@ -132,52 +138,76 @@ public class MainActivity extends AppCompatActivity {
   public void setupAppDrawer() {
     float[] cornersRadiusPx = {20, 20, 20, 20};
     float[] searchBarCornerRadius = {40, 40, 40, 40};
-    int horizontalMarginPx = getResources().getDimensionPixelSize(R.dimen.item_horizontal_margin);
-    rvAppDrawerApps.addItemDecoration(new CenterCardItemDecoration(horizontalMarginPx));
 
-    RecyclerViewAdapter recyclerViewAdapter =
-        new RecyclerViewAdapter(this, packageUtils.getAppList());
-    rvAppDrawerApps.setLayoutManager(new GridLayoutManager(this, 4));
-    rvAppDrawerApps.setAdapter(recyclerViewAdapter);
+    if (rvAppDrawerSearchbarResults != null) {
+
+      rvAppDrawerSearchbarResults.setLayoutManager(
+          new LinearLayoutManager(this, LinearLayoutManager.HORIZONTAL, false));
+
+      rvAppDrawerSearchbarResults.setPadding(10, 130, 10, 10);
+    }
 
     rlAppDrawerContainer.getLayoutParams().height = ViewGroup.LayoutParams.MATCH_PARENT;
 
     utils.setViewShape(this, rlAppDrawerContainer, Color.WHITE, cornersRadiusPx);
     utils.setViewShape(this, svAppDrawerSearchBar, Color.BLACK, searchBarCornerRadius);
-    utils.setViewShape(this, rvAppDrawerSearchbarResults, Color.RED, cornersRadiusPx);
+    utils.setViewShape(
+        this, rvAppDrawerSearchbarResults, Color.rgb(245, 245, 245), cornersRadiusPx);
 
     svAppDrawerSearchBar.setOnQueryTextListener(
         new XSearchView.OnQueryTextListener() {
           @Override
           public boolean onQueryTextSubmit(String query) {
-            // Handle search query submission
+			  if(!searchbarResultsApps.isEmpty()) {
+				  packageUtils.launchApp(searchbarResultsApps.get(0).getPackageName());
+			  }
             return true;
           }
 
           @Override
           public boolean onQueryTextChange(String newText) {
-            // Handle text changes in search input
+            // clear each time so that no previous views are there
+            searchbarResultsApps.clear();
+
+            for (int i = 0; i < appList.size(); i++) {
+              if (appList.get(i).getAppName().toLowerCase().startsWith(newText.toLowerCase())) {
+                searchbarResultsApps.add(appList.get(i));
+              }
+            }
+
+            rvAppDrawerSearchbarResults.setAdapter(
+                new AppDrawerSearchbarResultsAdapter(MainActivity.this, searchbarResultsApps));
             return true;
           }
         });
-		
-	svAppDrawerSearchBar.setOnQueryTextFocusChangeListener(new SearchView.OnFocusChangeListener() {
-		@Override
-		public void onFocusChange(View view, boolean hasFocus) {
-			if(hasFocus) {
-				rvAppDrawerSearchbarResults.setVisibility(View.VISIBLE);
-			}
-			else {
-				rvAppDrawerSearchbarResults.setVisibility(View.INVISIBLE);
-			}
-		}
-	});
+
+    svAppDrawerSearchBar.setOnQueryTextFocusChangeListener(
+        new SearchView.OnFocusChangeListener() {
+          @Override
+          public void onFocusChange(View view, boolean hasFocus) {
+            if (hasFocus) {
+              rvAppDrawerSearchbarResults.setVisibility(View.VISIBLE);
+              searchbarResultsApps.clear();
+              svAppDrawerSearchBar.setIconified(false);
+
+              rvAppDrawerSearchbarResults.setAdapter(
+                  new AppDrawerSearchbarResultsAdapter(MainActivity.this, searchbarResultsApps));
+            } else {
+              rvAppDrawerSearchbarResults.setVisibility(View.INVISIBLE);
+              svAppDrawerSearchBar.setIconified(true);
+            }
+          }
+        });
 
     svAppDrawerSearchBar.setOnClickListener(
-        view -> {
-          bottomSheetBehavior.setState(BottomSheetBehavior.STATE_EXPANDED);
-          svAppDrawerSearchBar.setIconified(false);
-		  rvAppDrawerSearchbarResults.setVisibility(View.VISIBLE);
+        new View.OnClickListener() {
+          @Override
+          public void onClick(View view) {
+            showToast(String.valueOf(bottomSheetBehavior.getState()));
+            bottomSheetBehavior.setState(BottomSheetBehavior.STATE_EXPANDED);
+            svAppDrawerSearchBar.setIconified(false);
+            rvAppDrawerSearchbarResults.setVisibility(View.VISIBLE);
+          }
         });
 
     bottomSheetBehavior = BottomSheetBehavior.from(rlAppDrawerContainer);
@@ -199,7 +229,7 @@ public class MainActivity extends AppCompatActivity {
           @Override
           public void onSlide(@NotNull View bottomSheet, float slideOffset) {
             int topMargin = ((1500 - bottomSheet.getTop()) / 20) + 20;
-			int sideMargin = ((1500 - bottomSheet.getTop()) / 40) + 20;
+            int sideMargin = ((1500 - bottomSheet.getTop()) / 40) + 20;
             svAppDrawerSearchBar.setMargins(topMargin, sideMargin, 10, sideMargin);
             rvAppDrawerSearchbarResults.setMargins(topMargin - 20, 15, 15, 15);
           }
@@ -212,6 +242,13 @@ public class MainActivity extends AppCompatActivity {
           rlAppDrawerContainer.setPadding(0, 0, 0, insets.getSystemWindowInsetBottom());
           return insets.consumeSystemWindowInsets();
         });
+
+    int horizontalMarginPx = getResources().getDimensionPixelSize(R.dimen.item_horizontal_margin);
+    rvAppDrawerApps.addItemDecoration(new CenterCardItemDecoration(horizontalMarginPx));
+
+    AppDrawerAppsAdapter appDrawerAppsAdapter = new AppDrawerAppsAdapter(this, appList);
+    rvAppDrawerApps.setLayoutManager(new GridLayoutManager(this, 4));
+    rvAppDrawerApps.setAdapter(appDrawerAppsAdapter);
   }
 
   public void setupHomepageWallpaperButton() {

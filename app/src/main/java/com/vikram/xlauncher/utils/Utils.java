@@ -15,6 +15,7 @@ import android.util.DisplayMetrics;
 import android.view.View;
 import android.view.Window;
 import android.view.WindowManager;
+import android.widget.Toast;
 import androidx.appcompat.app.AppCompatActivity;
 import java.io.FileNotFoundException;
 import java.io.IOException;
@@ -148,5 +149,19 @@ public class Utils {
     Intent intent = new Intent(Intent.ACTION_PICK);
     intent.setType("image/*");
     activity.startActivityForResult(intent, 53);
+  }
+
+  public void launchAppInfo(String packageName) {
+    Intent intent = new Intent(android.provider.Settings.ACTION_APPLICATION_DETAILS_SETTINGS);
+    intent.setData(Uri.parse("package:" + packageName));
+
+    // Check if there's an activity that can handle this intent
+    if (intent.resolveActivity(context.getPackageManager()) != null) {
+      context.startActivity(intent);
+    } else {
+      // Handle if no activity can handle the intent
+      Toast.makeText(context, "Unable to open app info for " + packageName, Toast.LENGTH_SHORT)
+          .show();
+    }
   }
 }
