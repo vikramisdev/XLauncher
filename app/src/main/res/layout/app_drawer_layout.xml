@@ -6,6 +6,8 @@
     android:layout_height="match_parent"
     app:layout_behavior="com.google.android.material.bottomsheet.BottomSheetBehavior"
     android:background="@android:color/white"
+    android:clipChildren="false"
+    android:clipToPadding="false"
     android:fitsSystemWindows="true"
     android:gravity="top|center_horizontal"
     android:orientation="vertical" >
@@ -15,6 +17,8 @@
         android:layout_width="match_parent"
         android:layout_height="match_parent"
         android:layout_below="@id/app_drawer_searchbar"
+        android:layout_centerHorizontal="true"
+        android:layout_marginBottom="10dp"
         android:layout_marginLeft="5dp"
         android:layout_marginRight="5dp"
         android:layout_marginTop="20dp"
@@ -28,8 +32,8 @@
         android:layout_margin="15dp"
         android:background="@color/md_theme_dark_error"
         android:clickable="false"
-		android:visibility="gone"
-        android:gravity="center" />
+        android:gravity="center"
+        android:visibility="gone" />
 
     <com.vikram.xlauncher.layouts.XSearchView
         android:id="@+id/app_drawer_searchbar"

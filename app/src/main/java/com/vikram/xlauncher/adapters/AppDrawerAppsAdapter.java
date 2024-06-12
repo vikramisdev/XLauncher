@@ -4,19 +4,25 @@ import android.animation.AnimatorInflater;
 import android.animation.AnimatorSet;
 import android.content.Context;
 import android.content.Intent;
+import android.util.Log;
 import android.view.ContextThemeWrapper;
 import android.view.LayoutInflater;
 import android.view.MenuItem;
+import android.view.MotionEvent;
 import android.view.View;
 import android.view.ViewGroup;
+import android.widget.ImageView;
 import android.widget.TextView;
 import android.widget.Toast;
 import androidx.appcompat.widget.PopupMenu;
 import androidx.recyclerview.widget.RecyclerView;
+import com.google.android.material.bottomsheet.BottomSheetBehavior;
 import com.google.android.material.imageview.ShapeableImageView;
+import com.vikram.xlauncher.MainActivity;
 import com.vikram.xlauncher.R;
-import com.vikram.xlauncher.adapters.RecyclerViewAdapter.ViewHolder;
+import com.vikram.xlauncher.adapters.AppDrawerAppsAdapter.ViewHolder;
 import com.vikram.xlauncher.models.AppModel;
+import com.vikram.xlauncher.utils.PackageUtils;
 import com.vikram.xlauncher.utils.Utils;
 import java.util.List;
 import org.jetbrains.annotations.NotNull;
@@ -26,11 +32,15 @@ public class AppDrawerAppsAdapter extends RecyclerView.Adapter<AppDrawerAppsAdap
   private List<AppModel> appList;
   private Context context;
   private Utils utils;
+  private MainActivity activity;
+  private PackageUtils packageUtils;
 
-  public AppDrawerAppsAdapter(Context context, List<AppModel> appList) {
-    this.context = context;
+  public AppDrawerAppsAdapter(MainActivity activity, List<AppModel> appList) {
+    this.context = (Context) activity;
     this.appList = appList;
-    this.utils = new Utils(context);
+    this.utils = new Utils((Context) activity);
+    this.activity = activity;
+	this.packageUtils = new PackageUtils(context);
   }
 
   @NotNull
@@ -42,7 +52,10 @@ public class AppDrawerAppsAdapter extends RecyclerView.Adapter<AppDrawerAppsAdap
 
   @Override
   public void onBindViewHolder(@NotNull ViewHolder holder, int position) {
+	
     AppModel app = appList.get(position);
+	//Log.d("POSITION:: ", app.getAppName());
+
     holder.appName.setText(app.getAppName());
     holder.appIcon.setImageDrawable(app.getAppImage());
 
@@ -115,7 +128,7 @@ public class AppDrawerAppsAdapter extends RecyclerView.Adapter<AppDrawerAppsAdap
                 utils.launchAppInfo(app.getPackageName());
                 break;
               case R.id.menu_app_uninstall:
-                // Perform action 2
+                packageUtils.uninstallApp(app.getPackageName());
                 break;
                 // Add more cases as needed
             }
@@ -135,5 +148,20 @@ public class AppDrawerAppsAdapter extends RecyclerView.Adapter<AppDrawerAppsAdap
       appIcon = view.findViewById(R.id.app_icon);
       appName = view.findViewById(R.id.app_name);
     }
+  }
+
+  public View copyAppView(View view) {
+    TextView viewText = view.findViewById(R.id.app_name);
+    ImageView viewImage = view.findViewById(R.id.app_icon);
+
+    View newView = activity.getLayoutInflater().inflate(R.layout.app_item, null, false);
+
+    ImageView newImageView = newView.findViewById(R.id.app_icon);
+    TextView newTextView = newView.findViewById(R.id.app_name);
+
+    newTextView.setText(viewText.getText());
+    newImageView.setImageDrawable(viewImage.getDrawable());
+
+    return newView;
   }
 }

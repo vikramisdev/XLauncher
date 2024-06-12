@@ -5,11 +5,8 @@ import android.graphics.Color;
 import android.graphics.drawable.Drawable;
 import android.net.Uri;
 import android.os.Bundle;
-import android.os.Handler;
-import android.provider.Settings;
 import android.view.View;
 import android.view.ViewGroup;
-import android.widget.Button;
 import android.widget.ImageView;
 import android.widget.RelativeLayout;
 import android.widget.SearchView;
@@ -21,6 +18,8 @@ import androidx.recyclerview.widget.GridLayoutManager;
 import androidx.recyclerview.widget.ItemTouchHelper;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.PagerSnapHelper;
+import androidx.recyclerview.widget.RecyclerView;
+import androidx.recyclerview.widget.RecyclerView.ViewHolder;
 import com.google.android.material.bottomsheet.BottomSheetBehavior;
 import com.vikram.xlauncher.adapters.AppDrawerAppsAdapter;
 import com.vikram.xlauncher.adapters.AppDrawerSearchbarResultsAdapter;
@@ -34,7 +33,6 @@ import com.vikram.xlauncher.utils.Utils;
 import com.vikram.xlauncher.utils.WallpaperUtils;
 import com.vikram.xlauncher.views.XRecyclerView;
 import com.vikram.xlauncher.views.XTextView;
-import com.vikram.xlauncher.watchdogs.WallpaperObserver;
 import java.util.ArrayList;
 import java.util.List;
 import org.jetbrains.annotations.NotNull;
@@ -42,14 +40,14 @@ import org.jetbrains.annotations.Nullable;
 
 public class MainActivity extends AppCompatActivity {
 
-  private BottomSheetBehavior<RelativeLayout> bottomSheetBehavior;
+  public BottomSheetBehavior<RelativeLayout> bottomSheetBehavior;
   private List<AppModel> appList, searchbarResultsApps;
   private PackageUtils packageUtils;
-  private XRecyclerView rvHomepagePages, rvAppDrawerApps, rvAppDrawerSearchbarResults;
+  public XRecyclerView rvHomepagePages, rvAppDrawerApps, rvAppDrawerSearchbarResults;
   private HomepageAdapter homepageAdapter;
   private ImageView imHomepageWallpaperButton, imHomepageSettingsButton;
   private static final int PICK_IMAGE = 53;
-  private CoordinatorLayout clHomepageContainer;
+  public CoordinatorLayout clHomepageContainer;
   private PreferenceManager preferenceManager;
   private Utils utils;
   private WallpaperUtils wallpaperUtils;
@@ -64,12 +62,14 @@ public class MainActivity extends AppCompatActivity {
     setContentView(R.layout.main_layout);
 
     // Initialize utils
+
     utils = new Utils(this);
     wallpaperUtils = new WallpaperUtils(this);
     packageUtils = new PackageUtils(this);
     preferenceManager = new PreferenceManager(this);
 
     appList = packageUtils.getAppList();
+
     searchbarResultsApps = new ArrayList<AppModel>();
 
     // make the screen to fullscreen so views go under status bar
@@ -92,10 +92,6 @@ public class MainActivity extends AppCompatActivity {
 
     // set launcher to main_layout
     wallpaperUtils.setLauncherWallpaper(clHomepageContainer);
-
-    registerObserver(
-        Settings.System.getUriFor(Settings.System.WALLPAPER_ACTIVITY),
-        new WallpaperObserver(this, clHomepageContainer, new Handler()));
   }
 
   @Override
@@ -158,9 +154,9 @@ public class MainActivity extends AppCompatActivity {
         new XSearchView.OnQueryTextListener() {
           @Override
           public boolean onQueryTextSubmit(String query) {
-			  if(!searchbarResultsApps.isEmpty()) {
-				  packageUtils.launchApp(searchbarResultsApps.get(0).getPackageName());
-			  }
+            if (!searchbarResultsApps.isEmpty()) {
+              packageUtils.launchApp(searchbarResultsApps.get(0).getPackageName());
+            }
             return true;
           }
 
@@ -243,12 +239,37 @@ public class MainActivity extends AppCompatActivity {
           return insets.consumeSystemWindowInsets();
         });
 
-    int horizontalMarginPx = getResources().getDimensionPixelSize(R.dimen.item_horizontal_margin);
-    rvAppDrawerApps.addItemDecoration(new CenterCardItemDecoration(horizontalMarginPx));
+    ItemTouchHelper.Callback callback =
+        new ItemTouchHelper.Callback() {
+          @Override
+          public int getMovementFlags(RecyclerView arg0, ViewHolder arg1) {
+            int dragFlags =
+                ItemTouchHelper.UP
+                    | ItemTouchHelper.DOWN
+                    | ItemTouchHelper.LEFT
+                    | ItemTouchHelper.RIGHT;
+            return makeMovementFlags(dragFlags, 0);
+          }
 
-    AppDrawerAppsAdapter appDrawerAppsAdapter = new AppDrawerAppsAdapter(this, appList);
+          @Override
+          public boolean onMove(
+              @NotNull RecyclerView recyclerView,
+              @NotNull RecyclerView.ViewHolder viewHolder,
+              @NotNull RecyclerView.ViewHolder target) {
+
+            bottomSheetBehavior.setState(BottomSheetBehavior.STATE_COLLAPSED);
+            return false;
+          }
+
+          @Override
+          public void onSwiped(ViewHolder arg0, int arg1) {}
+        };
+
+    ItemTouchHelper itemTouchHelper = new ItemTouchHelper(callback);
+    itemTouchHelper.attachToRecyclerView(rvAppDrawerApps);
+
     rvAppDrawerApps.setLayoutManager(new GridLayoutManager(this, 4));
-    rvAppDrawerApps.setAdapter(appDrawerAppsAdapter);
+    rvAppDrawerApps.setAdapter(new AppDrawerAppsAdapter(this, appList));
   }
 
   public void setupHomepageWallpaperButton() {

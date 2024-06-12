@@ -164,4 +164,8 @@ public class Utils {
           .show();
     }
   }
+  
+  public void showToast(String message) {
+    Toast.makeText(context, message, Toast.LENGTH_SHORT).show();
+  }
 }
