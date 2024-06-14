@@ -4,19 +4,19 @@ import android.animation.AnimatorInflater;
 import android.animation.AnimatorSet;
 import android.content.Context;
 import android.content.Intent;
-import android.util.Log;
-import android.view.ContextThemeWrapper;
+import android.view.Gravity;
 import android.view.LayoutInflater;
-import android.view.MenuItem;
 import android.view.MotionEvent;
 import android.view.View;
 import android.view.ViewGroup;
+import android.view.animation.Animation;
+import android.view.animation.TranslateAnimation;
 import android.widget.ImageView;
+import android.widget.LinearLayout;
+import android.widget.PopupWindow;
 import android.widget.TextView;
 import android.widget.Toast;
-import androidx.appcompat.widget.PopupMenu;
 import androidx.recyclerview.widget.RecyclerView;
-import com.google.android.material.bottomsheet.BottomSheetBehavior;
 import com.google.android.material.imageview.ShapeableImageView;
 import com.vikram.xlauncher.MainActivity;
 import com.vikram.xlauncher.R;
@@ -34,13 +34,14 @@ public class AppDrawerAppsAdapter extends RecyclerView.Adapter<AppDrawerAppsAdap
   private Utils utils;
   private MainActivity activity;
   private PackageUtils packageUtils;
+  private PopupWindow popupWindow;
 
   public AppDrawerAppsAdapter(MainActivity activity, List<AppModel> appList) {
     this.context = (Context) activity;
     this.appList = appList;
     this.utils = new Utils((Context) activity);
     this.activity = activity;
-	this.packageUtils = new PackageUtils(context);
+    this.packageUtils = new PackageUtils(context);
   }
 
   @NotNull
@@ -52,9 +53,9 @@ public class AppDrawerAppsAdapter extends RecyclerView.Adapter<AppDrawerAppsAdap
 
   @Override
   public void onBindViewHolder(@NotNull ViewHolder holder, int position) {
-	
+
     AppModel app = appList.get(position);
-	//Log.d("POSITION:: ", app.getAppName());
+    // Log.d("POSITION:: ", app.getAppName());
 
     holder.appName.setText(app.getAppName());
     holder.appIcon.setImageDrawable(app.getAppImage());
@@ -95,48 +96,121 @@ public class AppDrawerAppsAdapter extends RecyclerView.Adapter<AppDrawerAppsAdap
         new View.OnLongClickListener() {
           @Override
           public boolean onLongClick(View v) {
-            showPopupMenu(v.getContext(), v, app);
+            // showPopupMenu(v.getContext(), v, app);
+            showOptionsPopup(v.findViewById(R.id.app_icon));
+
             return true;
           }
+        });
+  }
+
+  private void showOptionsPopup(View anchorView) {
+    // Retrieve the LayoutInflater service
+    LayoutInflater inflater =
+        (LayoutInflater) context.getSystemService(Context.LAYOUT_INFLATER_SERVICE);
+
+    // Inflate the custom layout/view
+    View popupView = inflater.inflate(R.layout.popup_window, null);
+    ImageView arrowDown = popupView.findViewById(R.id.app_menu_triangle);
+
+    // Create the popup window
+    final PopupWindow popupWindow =
+        new PopupWindow(
+            popupView,
+            LinearLayout.LayoutParams.WRAP_CONTENT,
+            LinearLayout.LayoutParams.WRAP_CONTENT,
+            true);
+
+    // Disable clipping for the popup window
+    popupWindow.setClippingEnabled(false);
+
+    // Calculate the position to show the popup above the anchor view
+    int[] anchorViewLocation = new int[2];
+    anchorView.getLocationOnScreen(anchorViewLocation);
+
+    int anchorViewX = anchorViewLocation[0];
+    int anchorViewY = anchorViewLocation[1];
+
+    // Measure the popup window to get its dimensions
+    popupView.measure(View.MeasureSpec.UNSPECIFIED, View.MeasureSpec.UNSPECIFIED);
+    int popupWindowWidth = popupView.getMeasuredWidth();
+    int popupWindowHeight = popupView.getMeasuredHeight();
+
+    // Determine column position and adjust popup position
+    int screenWidth = context.getResources().getDisplayMetrics().widthPixels;
+    int columnWidth = screenWidth / 4; // Assuming 4 columns
+
+    if (anchorViewX < columnWidth * 2) {
+      // For left two columns, show popup to the right of the anchor view
+      popupWindow.showAtLocation(
+          anchorView, Gravity.NO_GRAVITY, anchorViewX, anchorViewY - popupWindowHeight);
+
+      // Calculate the X position of the triangle relative to the popup window
+      int triangleX =
+          anchorViewX + (anchorView.getWidth() / 2) - (arrowDown.getMeasuredWidth() / 2);
+
+      // Ensure the triangle is within bounds
+      if (triangleX < anchorViewX) {
+        triangleX = anchorViewX;
+      } else if (triangleX + arrowDown.getMeasuredWidth() > anchorViewX + popupWindowWidth) {
+        triangleX = anchorViewX + popupWindowWidth - arrowDown.getMeasuredWidth();
+      }
+
+      // Set the X position of the triangle
+      int relativeTriangleX = triangleX - anchorViewX - 20;
+      arrowDown.setX(relativeTriangleX);
+    } else {
+      // For right two columns, show popup to the left of the anchor view
+      popupWindow.showAtLocation(
+          anchorView,
+          Gravity.NO_GRAVITY,
+          anchorViewX - popupWindowWidth + anchorView.getWidth(),
+          anchorViewY - popupWindowHeight);
+
+      // Set the X position of the triangle to the rightmost side of the popup window
+      arrowDown.setX(popupWindowWidth - arrowDown.getMeasuredWidth() - 10); // rounded cornered menu fix
+    }
+
+    // Create enter animation (slide up)
+    Animation slideUp =
+        new TranslateAnimation(
+            Animation.RELATIVE_TO_SELF, 0.0f,
+            Animation.RELATIVE_TO_SELF, 0.0f,
+            Animation.RELATIVE_TO_SELF, 1.0f,
+            Animation.RELATIVE_TO_SELF, 0.0f);
+    slideUp.setDuration(100);
+    slideUp.setFillAfter(true);
+
+    // Create exit animation (slide down)
+    Animation slideDown =
+        new TranslateAnimation(
+            Animation.RELATIVE_TO_SELF, 0.0f,
+            Animation.RELATIVE_TO_SELF, 0.0f,
+            Animation.RELATIVE_TO_SELF, 0.0f,
+            Animation.RELATIVE_TO_SELF, 1.0f);
+    slideDown.setDuration(100);
+    slideDown.setFillAfter(true);
+
+    // Apply the enter animation when the popup window is shown
+    popupView.startAnimation(slideUp);
+
+    // Set the exit animation when the popup window is dismissed
+    popupWindow.setOnDismissListener(() -> popupView.startAnimation(slideDown));
+
+    // Optional: Dismiss the popup when touched outside
+    popupView.setOnTouchListener(
+        (v, event) -> {
+          if (event.getAction() == MotionEvent.ACTION_OUTSIDE) {
+            popupView.startAnimation(slideDown);
+            return true;
+          }
+          return false;
         });
   }
 
   @Override
   public int getItemCount() {
     return appList.size();
-  }
-
-  private void showPopupMenu(Context context, View anchorView, AppModel app) {
-    Context wrapper = new ContextThemeWrapper(context, R.style.PopupMenuStyle);
-
-    PopupMenu popupMenu = new PopupMenu(wrapper, anchorView);
-    popupMenu.getMenuInflater().inflate(R.menu.popup_menu, popupMenu.getMenu());
-
-    // Optionally, you can dynamically set menu item titles or icons based on app details
-    // popupMenu.getMenu().findItem(R.id.menu_item_id).setTitle(app.getAppName());
-    if (!app.canUninstall()) {
-      popupMenu.getMenu().findItem(R.id.menu_app_uninstall).setTitle("Disable");
-    }
-
-    popupMenu.setOnMenuItemClickListener(
-        new PopupMenu.OnMenuItemClickListener() {
-          @Override
-          public boolean onMenuItemClick(MenuItem item) {
-            // Handle menu item click here
-            switch (item.getItemId()) {
-              case R.id.menu_app_info:
-                utils.launchAppInfo(app.getPackageName());
-                break;
-              case R.id.menu_app_uninstall:
-                packageUtils.uninstallApp(app.getPackageName());
-                break;
-                // Add more cases as needed
-            }
-            return true;
-          }
-        });
-
-    popupMenu.show();
   }
 
   public static class ViewHolder extends RecyclerView.ViewHolder {
@@ -161,7 +235,6 @@ public class AppDrawerAppsAdapter extends RecyclerView.Adapter<AppDrawerAppsAdap
 
     newTextView.setText(viewText.getText());
     newImageView.setImageDrawable(viewImage.getDrawable());
-
     return newView;
   }
 }

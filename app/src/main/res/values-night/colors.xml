@@ -1,0 +1,11 @@
+<resources>
+
+    <!-- app drawer colors -->
+    <color name="app_drawer_color">#1E1E1E</color> <!-- chrome gray -->
+    <color name="app_drawer_searchbar_color">#FFFFFF</color> <!-- white -->
+    <color name="app_drawer_searchbar_results_color">#F5F5F5</color> <!-- whitesmoke -->
+    <color name="app_drawer_searchbar_text_color">#000000</color> <!-- black -->
+	
+	<color name="black">#000000</color>
+
+</resources>

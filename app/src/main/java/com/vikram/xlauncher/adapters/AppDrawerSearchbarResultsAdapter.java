@@ -40,7 +40,7 @@ public class AppDrawerSearchbarResultsAdapter
   @NotNull
   @Override
   public ViewHolder onCreateViewHolder(@NotNull ViewGroup parent, int viewType) {
-    View view = LayoutInflater.from(parent.getContext()).inflate(R.layout.app_item, parent, false);
+    View view = LayoutInflater.from(parent.getContext()).inflate(R.layout.search_results_app_item, parent, false);
     return new ViewHolder(view);
   }
 
@@ -129,8 +129,8 @@ public class AppDrawerSearchbarResultsAdapter
 
     public ViewHolder(View view) {
       super(view);
-      appIcon = view.findViewById(R.id.app_icon);
-      appName = view.findViewById(R.id.app_name);
+      appIcon = view.findViewById(R.id.search_results_app_icon);
+      appName = view.findViewById(R.id.search_results_app_name);
     }
   }
 }

@@ -17,6 +17,7 @@ import android.view.Window;
 import android.view.WindowManager;
 import android.widget.Toast;
 import androidx.appcompat.app.AppCompatActivity;
+import androidx.core.content.ContextCompat;
 import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.io.InputStream;
@@ -167,5 +168,9 @@ public class Utils {
   
   public void showToast(String message) {
     Toast.makeText(context, message, Toast.LENGTH_SHORT).show();
+  }
+  
+  public int getColor(int colorId) {
+	  return ContextCompat.getColor(context, colorId);
   }
 }

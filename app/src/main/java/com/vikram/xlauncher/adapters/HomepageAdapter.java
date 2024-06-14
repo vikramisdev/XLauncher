@@ -5,7 +5,9 @@ import android.graphics.Color;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
+import android.widget.GridLayout;
 import android.widget.LinearLayout;
+import android.widget.TextView;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.recyclerview.widget.RecyclerView;
 import com.vikram.xlauncher.R;
@@ -36,6 +38,7 @@ public class HomepageAdapter extends RecyclerView.Adapter<HomepageAdapter.ViewHo
   public ViewHolder onCreateViewHolder(ViewGroup parent, int viewType) {
     View view =
         LayoutInflater.from(parent.getContext()).inflate(R.layout.homepage_cards, parent, false);
+		
     return new ViewHolder(view);
   }
 

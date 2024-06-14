@@ -5,11 +5,9 @@
     android:layout_width="match_parent"
     android:layout_height="match_parent"
     app:layout_behavior="com.google.android.material.bottomsheet.BottomSheetBehavior"
-    android:background="@android:color/white"
     android:clipChildren="false"
     android:clipToPadding="false"
     android:fitsSystemWindows="true"
-    android:gravity="top|center_horizontal"
     android:orientation="vertical" >
 
     <com.vikram.xlauncher.views.XRecyclerView
@@ -22,13 +20,15 @@
         android:layout_marginLeft="5dp"
         android:layout_marginRight="5dp"
         android:layout_marginTop="20dp"
+		android:clipChildren="false"
+    	android:clipToPadding="false"
         android:orientation="vertical"
         android:scrollbars="vertical" />
 
     <com.vikram.xlauncher.views.XRecyclerView
         android:id="@+id/app_drawer_searchbar_results"
         android:layout_width="match_parent"
-        android:layout_height="180dp"
+        android:layout_height="200dp"
         android:layout_margin="15dp"
         android:background="@color/md_theme_dark_error"
         android:clickable="false"
@@ -43,10 +43,7 @@
         android:layout_marginLeft="15dp"
         android:layout_marginRight="15dp"
         android:layout_marginTop="15dp"
-        app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toTopOf="parent"
-        android:background="@color/md_theme_dark_background"
-        android:clickable="true" />
+        android:clickable="true"
+        android:textColor="@color/black" />
 
 </com.vikram.xlauncher.layouts.XRelativeLayout>

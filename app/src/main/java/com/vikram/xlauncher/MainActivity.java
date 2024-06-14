@@ -1,15 +1,14 @@
 package com.vikram.xlauncher;
 
 import android.content.Intent;
-import android.graphics.Color;
 import android.graphics.drawable.Drawable;
 import android.net.Uri;
 import android.os.Bundle;
 import android.view.View;
 import android.view.ViewGroup;
+import android.view.animation.Animation;
+import android.view.animation.AnimationUtils;
 import android.widget.ImageView;
-import android.widget.RelativeLayout;
-import android.widget.SearchView;
 import android.widget.Toast;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.coordinatorlayout.widget.CoordinatorLayout;
@@ -40,7 +39,7 @@ import org.jetbrains.annotations.Nullable;
 
 public class MainActivity extends AppCompatActivity {
 
-  public BottomSheetBehavior<RelativeLayout> bottomSheetBehavior;
+  public BottomSheetBehavior<XRelativeLayout> bottomSheetBehavior;
   private List<AppModel> appList, searchbarResultsApps;
   private PackageUtils packageUtils;
   public XRecyclerView rvHomepagePages, rvAppDrawerApps, rvAppDrawerSearchbarResults;
@@ -55,6 +54,11 @@ public class MainActivity extends AppCompatActivity {
   private XTextView searchResults;
   private XRelativeLayout rlAppDrawerContainer;
   private List<String> list10;
+
+  float[] cornersRadiusPx = {20, 20, 20, 20};
+  float[] searchBarCornerRadius = {40, 40, 40, 40};
+
+  private boolean searchBarActive = false;
 
   @Override
   protected void onCreate(@NotNull Bundle savedInstanceState) {
@@ -88,7 +92,9 @@ public class MainActivity extends AppCompatActivity {
     // call component methods in order
     setupHomepagePages();
     setupAppDrawer();
-    setupHomepageWallpaperButton();
+    setupDock();
+    setupSearchBar();
+    setupSearchBarResults();
 
     // set launcher to main_layout
     wallpaperUtils.setLauncherWallpaper(clHomepageContainer);
@@ -100,9 +106,9 @@ public class MainActivity extends AppCompatActivity {
     if (bottomSheetBehavior.getState() == BottomSheetBehavior.STATE_EXPANDED) {
       bottomSheetBehavior.setState(BottomSheetBehavior.STATE_COLLAPSED);
       rvAppDrawerSearchbarResults.setVisibility(View.INVISIBLE);
-      svAppDrawerSearchBar.setIconified(true);
+      // svAppDrawerSearchBar.setIconified(true);
     } else {
-      super.onBackPressed();
+      // super.onBackPressed();
     }
   }
 
@@ -115,6 +121,25 @@ public class MainActivity extends AppCompatActivity {
     }
   }
 
+  public void setDeviceWallpaper(Drawable imageDrawable) {
+    clHomepageContainer.setBackground(imageDrawable);
+  }
+
+  private void showToast(String message) {
+    Toast.makeText(this, message, Toast.LENGTH_SHORT).show();
+  }
+
+  public void registerObserver(Uri uri, android.database.ContentObserver observer) {
+    getContentResolver().registerContentObserver(uri, false, observer);
+  }
+
+  public Animation createAnimation(int animationId, int duration) {
+    Animation animation = AnimationUtils.loadAnimation(this, animationId);
+    animation.setDuration(duration);
+    return animation;
+  }
+
+  // ------ //
   // app component methods
   public void setupHomepagePages() {
     List<String> homepagePagesList = new ArrayList<>();
@@ -131,114 +156,23 @@ public class MainActivity extends AppCompatActivity {
     snapHelper.attachToRecyclerView(rvHomepagePages);
   }
 
+  // app drawer
   public void setupAppDrawer() {
-    float[] cornersRadiusPx = {20, 20, 20, 20};
-    float[] searchBarCornerRadius = {40, 40, 40, 40};
+    rvAppDrawerApps.setLayoutManager(new GridLayoutManager(this, 4));
+    rvAppDrawerApps.setAdapter(new AppDrawerAppsAdapter(this, appList));
 
-    if (rvAppDrawerSearchbarResults != null) {
-
-      rvAppDrawerSearchbarResults.setLayoutManager(
-          new LinearLayoutManager(this, LinearLayoutManager.HORIZONTAL, false));
-
-      rvAppDrawerSearchbarResults.setPadding(10, 130, 10, 10);
-    }
-
-    rlAppDrawerContainer.getLayoutParams().height = ViewGroup.LayoutParams.MATCH_PARENT;
-
-    utils.setViewShape(this, rlAppDrawerContainer, Color.WHITE, cornersRadiusPx);
-    utils.setViewShape(this, svAppDrawerSearchBar, Color.BLACK, searchBarCornerRadius);
-    utils.setViewShape(
-        this, rvAppDrawerSearchbarResults, Color.rgb(245, 245, 245), cornersRadiusPx);
-
-    svAppDrawerSearchBar.setOnQueryTextListener(
-        new XSearchView.OnQueryTextListener() {
+    // set listeners
+    rvAppDrawerApps.setOnScrollChangeListener(
+        new View.OnScrollChangeListener() {
           @Override
-          public boolean onQueryTextSubmit(String query) {
-            if (!searchbarResultsApps.isEmpty()) {
-              packageUtils.launchApp(searchbarResultsApps.get(0).getPackageName());
-            }
-            return true;
-          }
-
-          @Override
-          public boolean onQueryTextChange(String newText) {
-            // clear each time so that no previous views are there
-            searchbarResultsApps.clear();
-
-            for (int i = 0; i < appList.size(); i++) {
-              if (appList.get(i).getAppName().toLowerCase().startsWith(newText.toLowerCase())) {
-                searchbarResultsApps.add(appList.get(i));
-              }
-            }
-
-            rvAppDrawerSearchbarResults.setAdapter(
-                new AppDrawerSearchbarResultsAdapter(MainActivity.this, searchbarResultsApps));
-            return true;
+          public void onScrollChange(View view, int left, int top, int right, int bottom) {
+            rvAppDrawerSearchbarResults.setVisibility(View.INVISIBLE);
+            svAppDrawerSearchBar.setIconified(true);
+            // svAppDrawerSearchBar.setIconified(true);
           }
         });
 
-    svAppDrawerSearchBar.setOnQueryTextFocusChangeListener(
-        new SearchView.OnFocusChangeListener() {
-          @Override
-          public void onFocusChange(View view, boolean hasFocus) {
-            if (hasFocus) {
-              rvAppDrawerSearchbarResults.setVisibility(View.VISIBLE);
-              searchbarResultsApps.clear();
-              svAppDrawerSearchBar.setIconified(false);
-
-              rvAppDrawerSearchbarResults.setAdapter(
-                  new AppDrawerSearchbarResultsAdapter(MainActivity.this, searchbarResultsApps));
-            } else {
-              rvAppDrawerSearchbarResults.setVisibility(View.INVISIBLE);
-              svAppDrawerSearchBar.setIconified(true);
-            }
-          }
-        });
-
-    svAppDrawerSearchBar.setOnClickListener(
-        new View.OnClickListener() {
-          @Override
-          public void onClick(View view) {
-            showToast(String.valueOf(bottomSheetBehavior.getState()));
-            bottomSheetBehavior.setState(BottomSheetBehavior.STATE_EXPANDED);
-            svAppDrawerSearchBar.setIconified(false);
-            rvAppDrawerSearchbarResults.setVisibility(View.VISIBLE);
-          }
-        });
-
-    bottomSheetBehavior = BottomSheetBehavior.from(rlAppDrawerContainer);
-    bottomSheetBehavior.setPeekHeight(200);
-
-    bottomSheetBehavior.setHideable(false);
-    bottomSheetBehavior.setSkipCollapsed(true);
-    bottomSheetBehavior.setState(BottomSheetBehavior.STATE_COLLAPSED);
-
-    bottomSheetBehavior.addBottomSheetCallback(
-        new BottomSheetBehavior.BottomSheetCallback() {
-          @Override
-          public void onStateChanged(@NotNull View bottomSheet, int newState) {
-            if (newState == BottomSheetBehavior.STATE_HALF_EXPANDED) {
-              bottomSheetBehavior.setState(BottomSheetBehavior.STATE_EXPANDED);
-            }
-          }
-
-          @Override
-          public void onSlide(@NotNull View bottomSheet, float slideOffset) {
-            int topMargin = ((1500 - bottomSheet.getTop()) / 20) + 20;
-            int sideMargin = ((1500 - bottomSheet.getTop()) / 40) + 20;
-            svAppDrawerSearchBar.setMargins(topMargin, sideMargin, 10, sideMargin);
-            rvAppDrawerSearchbarResults.setMargins(topMargin - 20, 15, 15, 15);
-          }
-        });
-
-    // Make the bottom sheet extend under the status bar
-    ViewCompat.setOnApplyWindowInsetsListener(
-        rlAppDrawerContainer,
-        (v, insets) -> {
-          rlAppDrawerContainer.setPadding(0, 0, 0, insets.getSystemWindowInsetBottom());
-          return insets.consumeSystemWindowInsets();
-        });
-
+    // callback to let apps move freely
     ItemTouchHelper.Callback callback =
         new ItemTouchHelper.Callback() {
           @Override
@@ -267,9 +201,6 @@ public class MainActivity extends AppCompatActivity {
 
     ItemTouchHelper itemTouchHelper = new ItemTouchHelper(callback);
     itemTouchHelper.attachToRecyclerView(rvAppDrawerApps);
-
-    rvAppDrawerApps.setLayoutManager(new GridLayoutManager(this, 4));
-    rvAppDrawerApps.setAdapter(new AppDrawerAppsAdapter(this, appList));
   }
 
   public void setupHomepageWallpaperButton() {
@@ -278,15 +209,138 @@ public class MainActivity extends AppCompatActivity {
     }
   }
 
-  public void setDeviceWallpaper(Drawable imageDrawable) {
-    clHomepageContainer.setBackground(imageDrawable);
+  public void setupDock() {
+    // reshape
+    float[] cornersRadiusPx = {20, 20, 20, 20};
+    utils.setViewShape(
+        this, rlAppDrawerContainer, utils.getColor(R.color.app_drawer_color), cornersRadiusPx);
+
+    rlAppDrawerContainer.getLayoutParams().height = ViewGroup.LayoutParams.MATCH_PARENT;
+
+    bottomSheetBehavior = BottomSheetBehavior.from(rlAppDrawerContainer);
+
+    // set mandatory things
+    bottomSheetBehavior.setPeekHeight(200);
+    bottomSheetBehavior.setHideable(false);
+    bottomSheetBehavior.setSkipCollapsed(true);
+    bottomSheetBehavior.setState(BottomSheetBehavior.STATE_COLLAPSED);
+
+    // set listeners
+    bottomSheetBehavior.addBottomSheetCallback(
+        new BottomSheetBehavior.BottomSheetCallback() {
+          @Override
+          public void onStateChanged(@NotNull View bottomSheet, int newState) {
+            if (newState == BottomSheetBehavior.STATE_HALF_EXPANDED) {
+              bottomSheetBehavior.setState(BottomSheetBehavior.STATE_EXPANDED);
+            }
+          }
+
+          @Override
+          public void onSlide(@NotNull View bottomSheet, float slideOffset) {
+            int topMargin = ((1500 - bottomSheet.getTop()) / 20) + 20;
+            int sideMargin = ((1500 - bottomSheet.getTop()) / 40) + 20;
+            svAppDrawerSearchBar.setMargins(topMargin, sideMargin, 10, sideMargin);
+            rvAppDrawerSearchbarResults.setMargins(topMargin - 20, 15, 15, 15);
+          }
+        });
+
+    // Make the bottom sheet extend under the status bar
+    ViewCompat.setOnApplyWindowInsetsListener(
+        rlAppDrawerContainer,
+        (v, insets) -> {
+          rlAppDrawerContainer.setPadding(0, 0, 0, insets.getSystemWindowInsetBottom());
+          return insets.consumeSystemWindowInsets();
+        });
   }
 
-  private void showToast(String message) {
-    Toast.makeText(this, message, Toast.LENGTH_SHORT).show();
+  public void setupSearchBar() {
+    // reshape
+    utils.setViewShape(
+        this,
+        svAppDrawerSearchBar,
+        utils.getColor(R.color.app_drawer_searchbar_color),
+        searchBarCornerRadius);
+
+    // set click listener
+    svAppDrawerSearchBar.setOnClickListener(
+        new View.OnClickListener() {
+          @Override
+          public void onClick(View view) {
+            // set iconified to false
+            if (!searchBarActive) {
+              svAppDrawerSearchBar.setIconified(false);
+              searchBarActive = true;
+            }
+
+            if (bottomSheetBehavior.getState() == BottomSheetBehavior.STATE_COLLAPSED) {
+              bottomSheetBehavior.setState(BottomSheetBehavior.STATE_EXPANDED);
+            }
+          }
+        });
+
+    // searchbar listeners
+    svAppDrawerSearchBar.setOnQueryTextListener(
+        new XSearchView.OnQueryTextListener() {
+          @Override
+          public boolean onQueryTextSubmit(String query) {
+            if (!searchbarResultsApps.isEmpty()) {
+              packageUtils.launchApp(searchbarResultsApps.get(0).getPackageName());
+            }
+            return true;
+          }
+
+          @Override
+          public boolean onQueryTextChange(String newText) {
+            // clear each time so that no previous views are there
+            searchbarResultsApps.clear();
+
+            for (int i = 0; i < appList.size(); i++) {
+              if (appList.get(i).getAppName().toLowerCase().startsWith(newText.toLowerCase())) {
+                searchbarResultsApps.add(appList.get(i));
+              }
+            }
+
+            rvAppDrawerSearchbarResults.setAdapter(
+                new AppDrawerSearchbarResultsAdapter(MainActivity.this, searchbarResultsApps));
+            return true;
+          }
+        });
+
+    svAppDrawerSearchBar.setOnQueryTextFocusChangeListener(
+        new XSearchView.OnFocusChangeListener() {
+          @Override
+          public void onFocusChange(View view, boolean hasFocus) {
+            if (hasFocus) {
+              rvAppDrawerSearchbarResults.setVisibility(View.VISIBLE);
+              searchbarResultsApps.clear();
+              svAppDrawerSearchBar.setIconified(false);
+              bottomSheetBehavior.setState(BottomSheetBehavior.STATE_EXPANDED);
+
+              rvAppDrawerSearchbarResults.setAdapter(
+                  new AppDrawerSearchbarResultsAdapter(MainActivity.this, searchbarResultsApps));
+            } else {
+              rvAppDrawerSearchbarResults.setVisibility(View.INVISIBLE);
+              svAppDrawerSearchBar.setIconified(true);
+            }
+          }
+        });
   }
 
-  public void registerObserver(Uri uri, android.database.ContentObserver observer) {
-    getContentResolver().registerContentObserver(uri, false, observer);
+  public void setupSearchBarResults() {
+    // intialize it
+    if (rvAppDrawerSearchbarResults != null) {
+
+      rvAppDrawerSearchbarResults.setLayoutManager(
+          new LinearLayoutManager(this, LinearLayoutManager.HORIZONTAL, false));
+
+      rvAppDrawerSearchbarResults.setPadding(10, 180, 10, 50);
+    }
+
+    // set shape
+    utils.setViewShape(
+        this,
+        rvAppDrawerSearchbarResults,
+        utils.getColor(R.color.app_drawer_searchbar_results_color),
+        cornersRadiusPx);
   }
 }

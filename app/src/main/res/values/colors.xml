@@ -1,6 +1,17 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
+    <!-- light mode colors -->
     <color name="seed">#6750A4</color>
+	
+	<color name="black">#000000</color>
+	
+	<!-- app drawer colors -->
+	<color name="app_drawer_color">#F5F5F5</color> <!-- whitesmoke -->
+	<color name="app_drawer_searchbar_color">#FFFFFF</color> <!-- chrome gray -->
+	<color name="app_drawer_searchbar_results_color">#FFFFFF</color> <!-- white -->
+	<color name="app_drawer_searchbar_text_color">#FFFFFF</color> <!-- white -->
+	
+	<color name="background_depth_1">#F5F5F5</color>
     <color name="md_theme_light_primary">#6750A4</color>
     <color name="md_theme_light_onPrimary">#FFFFFF</color>
     <color name="md_theme_light_primaryContainer">#EADDFF</color>
